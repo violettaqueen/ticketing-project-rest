@@ -23,14 +23,11 @@ import java.util.List;
 @RequestMapping("/api/v1/task")
 public class TaskController {
 
-    private final UserService userService;
-    private final ProjectService projectService;
     private final TaskService taskService;
 
 
-    public TaskController(UserService userService, ProjectService projectService, TaskService taskService) {
-        this.userService = userService;
-        this.projectService = projectService;
+    public TaskController(TaskService taskService) {
+
         this.taskService = taskService;
     }
 
