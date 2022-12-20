@@ -47,11 +47,11 @@ public class KeycloakServiceImpl implements KeycloakService {
 
         Keycloak keycloak = getKeycloakInstance(); //open an instance = create an object
 
-        RealmResource realmResource = keycloak.realm(keycloakProperties.getRealm()); //cydeo-dev
-        UsersResource usersResource = realmResource.users();
+        RealmResource realmResource = keycloak.realm(keycloakProperties.getRealm()); // cydeo-dev
+        UsersResource usersResource = realmResource.users();                         // users
 
         // Create Keycloak user
-        Response result = usersResource.create(keycloakUser);
+        Response result = usersResource.create(keycloakUser);                        // create a keycloak user
 
         String userId = getCreatedId(result);
         ClientRepresentation appClient = realmResource.clients()

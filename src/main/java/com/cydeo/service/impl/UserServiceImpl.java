@@ -1,5 +1,6 @@
 package com.cydeo.service.impl;
 
+import org.springframework.transaction.annotation.Transactional;
 import com.cydeo.annotation.DefaultExceptionMessage;
 import com.cydeo.dto.ProjectDTO;
 import com.cydeo.dto.TaskDTO;
@@ -13,6 +14,7 @@ import com.cydeo.service.ProjectService;
 import com.cydeo.service.TaskService;
 import com.cydeo.service.UserService;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,6 +23,8 @@ import java.util.stream.Collectors;
 @Service
 public class UserServiceImpl implements UserService {
 
+    PasswordEncoder passwordEncoder;
+
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final ProjectService projectService;
@@ -28,6 +32,7 @@ public class UserServiceImpl implements UserService {
     private final KeycloakService keycloakService;
 
     public UserServiceImpl(UserRepository userRepository, UserMapper userMapper, @Lazy ProjectService projectService, @Lazy TaskService taskService, KeycloakService keycloakService) {
+
         this.userRepository = userRepository;
         this.userMapper = userMapper;
         this.projectService = projectService;
@@ -47,17 +52,19 @@ public class UserServiceImpl implements UserService {
         return userList.stream().map(userMapper::convertToDto).collect(Collectors.toList());
     }
 
+    //@Transactional
     @Override
     public void save(UserDTO user) {
 
         user.setEnabled(true);
-
+        user.setPassWord(passwordEncoder.encode(user.getPassWord()));
         User obj = userMapper.convertToEntity(user);
 
         userRepository.save(obj);
         keycloakService.userCreate(user);
-
     }
+
+
 
 //    @Override
 //    public void deleteByUserName(String username) {
