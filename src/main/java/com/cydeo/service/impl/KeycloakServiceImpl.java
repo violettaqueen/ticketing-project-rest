@@ -30,7 +30,7 @@ public class KeycloakServiceImpl implements KeycloakService {
     @Override
     public Response userCreate(UserDTO userDTO) {
 
-        CredentialRepresentation credential = new CredentialRepresentation(); //dependency
+        CredentialRepresentation credential = new CredentialRepresentation(); //setting credentials for keycloak
         credential.setType(CredentialRepresentation.PASSWORD);
         credential.setTemporary(false); //we don't need to reset a password
         credential.setValue(userDTO.getPassWord()); // capture password and setting a value
@@ -47,20 +47,20 @@ public class KeycloakServiceImpl implements KeycloakService {
 
         Keycloak keycloak = getKeycloakInstance(); //open an instance = create an object
 
-        RealmResource realmResource = keycloak.realm(keycloakProperties.getRealm()); // cydeo-dev
+        RealmResource realmResource = keycloak.realm(keycloakProperties.getRealm()); // what realm? cydeo-dev
         UsersResource usersResource = realmResource.users();                         // users
 
         // Create Keycloak user
         Response result = usersResource.create(keycloakUser);                        // create a keycloak user
 
-        String userId = getCreatedId(result);
-        ClientRepresentation appClient = realmResource.clients()
-                .findByClientId(keycloakProperties.getClientId()).get(0);
+        String userId = getCreatedId(result);                                        // each user has id in K
+        ClientRepresentation appClient = realmResource.clients()                     // looking for a correct client
+                .findByClientId(keycloakProperties.getClientId()).get(0);            // ticketing-app id
 
         RoleRepresentation userClientRole = realmResource.clients().get(appClient.getId()) //it's going to keycloak, checks all the roles, take dto and if it matches with keycloak and assigns to the user in keycloak
                 .roles().get(userDTO.getRole().getDescription()).toRepresentation(); //assign roles
 
-        realmResource.users().get(userId).roles().clientLevel(appClient.getId())
+        realmResource.users().get(userId).roles().clientLevel(appClient.getId())     //
                 .add(List.of(userClientRole));
 
 
@@ -73,7 +73,7 @@ public class KeycloakServiceImpl implements KeycloakService {
 
         Keycloak keycloak = getKeycloakInstance();
 
-        RealmResource realmResource = keycloak.realm(keycloakProperties.getRealm());
+        RealmResource realmResource = keycloak.realm(keycloakProperties.getRealm());  // find user inside realm
         UsersResource usersResource = realmResource.users();
 
         List<UserRepresentation> userRepresentations = usersResource.search(userName);
@@ -83,7 +83,7 @@ public class KeycloakServiceImpl implements KeycloakService {
         keycloak.close();
     }
 
-    private Keycloak getKeycloakInstance(){  //keycloak instance, info from application. properties
+    private Keycloak getKeycloakInstance(){  //keycloak instance, to get info from application. properties
         return Keycloak.getInstance(keycloakProperties.getAuthServerUrl(),
                 keycloakProperties.getMasterRealm(), keycloakProperties.getMasterUser()
                 , keycloakProperties.getMasterUserPswd(), keycloakProperties.getMasterClient());

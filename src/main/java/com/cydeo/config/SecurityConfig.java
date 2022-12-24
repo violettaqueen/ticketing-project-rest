@@ -18,18 +18,18 @@ import org.springframework.security.web.authentication.session.SessionAuthentica
 
 @Configuration
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(jsr250Enabled = true)
-public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
+@EnableGlobalMethodSecurity(jsr250Enabled = true)  // @RolesAllowed
+public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {  // dependency
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         super.configure(http);
         http.authorizeRequests()
                 .anyRequest()
-                .permitAll();
+                .permitAll();  // allows to accept all requests, so keycloak captures all the requests
         http.csrf().disable();
     }
 
-    @Autowired
+    @Autowired  // keycloak will be able to auth the user
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
         KeycloakAuthenticationProvider keycloakAuthenticationProvider =
                 keycloakAuthenticationProvider();
