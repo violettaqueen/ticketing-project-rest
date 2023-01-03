@@ -18,11 +18,8 @@ public class ProjectController {
 
     private final ProjectService projectService;
 
-
-
     public ProjectController(ProjectService projectService, UserService userService) {
         this.projectService = projectService;
-
     }
 
     @GetMapping
@@ -57,14 +54,14 @@ public class ProjectController {
     @RolesAllowed("Manager")
     public ResponseEntity<ResponseWrapper> deleteProject(@PathVariable("projectCode") String projectCode) {
         projectService.delete(projectCode);
-        return ResponseEntity.ok(new ResponseWrapper("Project is created", HttpStatus.CREATED));
+        return ResponseEntity.ok(new ResponseWrapper("Project is successfully deleted", HttpStatus.OK));
     }
 
     @GetMapping("/manager/project-status")
     @RolesAllowed("Manager")
     public ResponseEntity<ResponseWrapper> getProjectByManager(@RequestBody UserDTO manager) {
         List<ProjectDTO> projectDTOList = projectService.listAllProjectDetails();
-        return ResponseEntity.ok(new ResponseWrapper("Project is created", HttpStatus.CREATED));
+        return ResponseEntity.ok(new ResponseWrapper("Project is successfully retrieved", HttpStatus.OK));
     }
 
     @PutMapping("/manager/complete/{projectCode}")
@@ -72,6 +69,6 @@ public class ProjectController {
     public ResponseEntity<ResponseWrapper> managerCompleteProject(@PathVariable("projectCode") String projectCode) {
 
         projectService.complete(projectCode);
-        return ResponseEntity.ok(new ResponseWrapper("Project is completed", HttpStatus.OK));
+        return ResponseEntity.ok(new ResponseWrapper("Project is successfully completed", HttpStatus.OK));
     }
 }

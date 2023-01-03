@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class TestResponseDTO {
 
-    private String access_token;
+    private String access_token;  //will capture access token
+
 
 }

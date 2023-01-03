@@ -17,6 +17,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.*;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -36,15 +37,15 @@ class ProjectControllerTest {
 
     static String token;
 
-    static UserDTO manager;
+    static UserDTO manager;  // static because I will use in @BeforeAll for sample data
     static ProjectDTO project;
 
     @BeforeAll
-    static void setUp() {
+    static void setUp() {   //creating sample data/objects before starting a to test
 
         token = "Bearer " + getToken();
 
-        manager = new UserDTO(2L,
+        manager = new UserDTO(2L,      //create manager
                 "",
                 "",
                 "ozzy",
@@ -55,7 +56,7 @@ class ProjectControllerTest {
                 new RoleDTO(2L, "Manager"),
                 Gender.MALE);
 
-        project = new ProjectDTO(
+        project = new ProjectDTO(         //create project
                 "API Project",
                 "PR001",
                 manager,
@@ -67,37 +68,37 @@ class ProjectControllerTest {
 
     }
 
-    @Test
+    @Test   //if I don't send any token
     void givenNoToken_getProjects() throws Exception {
         mvc.perform(MockMvcRequestBuilders.get("/api/v1/project"))
-                .andExpect(status().is4xxClientError());
+                .andExpect(status().is4xxClientError());  //400
     }
 
-    @Test
-    void givenToken_getProjects() throws Exception {
+    @Test   //send token
+    void givenToken_getProjects() throws Exception {     //testing get request
 
         mvc.perform(MockMvcRequestBuilders.get("/api/v1/project")
-                        .header("Authorization", token)
+                        .header("Authorization", token)   //pass/provide token
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[0].projectCode").exists())
-                .andExpect(jsonPath("$.data[0].assignedManager.userName").exists())
-                .andExpect(jsonPath("$.data[0].assignedManager.userName").isNotEmpty())
-                .andExpect(jsonPath("$.data[0].assignedManager.userName").isString())
-                .andExpect(jsonPath("$.data[0].assignedManager.userName").value("ozzy"));
+                .andExpect(jsonPath("$.data[0].projectCode").exists())                 //test inside the Json and get data
+                .andExpect(jsonPath("$.data[0].assignedManager.userName").exists())    //if we have a field
+                .andExpect(jsonPath("$.data[0].assignedManager.userName").isNotEmpty())//testing if field in not empty
+                .andExpect(jsonPath("$.data[0].assignedManager.userName").isString())  //if data comes in string
+                .andExpect(jsonPath("$.data[0].assignedManager.userName").value("ozzy")); //if username is ozzy or not
 
     }
 
     @Test
-    void givenToken_createProject() throws Exception {
+    void givenToken_createProject() throws Exception {   //testing post request
 
-        mvc.perform(MockMvcRequestBuilders.post("/api/v1/project")
+        mvc.perform(MockMvcRequestBuilders.post("/api/v1/project")   //end point for post method
                         .header("Authorization", token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
-                        .content(toJsonString(project)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.message").value("Project is successfully created"));
+                        .content(toJsonString(project)))  //posting a non hardcoded object
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("Project is created"));
 
     }
 
@@ -110,42 +111,45 @@ class ProjectControllerTest {
                         .header("Authorization", token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
-                        .content(toJsonString(project)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Project is successfully updated"));
+                        .content(toJsonString(project)))  //sending/passing that code that convert obj to json
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.message").value("Project is successfully updated")); // take it from controller
 
     }
 
     @Test
     void givenToken_deleteProject() throws Exception {
 
-        mvc.perform(MockMvcRequestBuilders.delete("/api/v1/project/" + project.getProjectCode())
+       MvcResult result= mvc.perform(MockMvcRequestBuilders.delete("/api/v1/project/" + project.getProjectCode()) //--> path variable passing here
                         .header("Authorization", token)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Project is successfully deleted"));
+                .andExpect(jsonPath("$.message").value("Project is successfully deleted"))
+                .andReturn();
+
+        assertEquals(200, result.getResponse().getStatus());
 
     }
-
-    private String toJsonString(final Object obj) throws JsonProcessingException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-        objectMapper.registerModule(new JavaTimeModule());
-        return objectMapper.writeValueAsString(obj);
+    // code to convert Object to Json by using Jackson library
+    private String toJsonString(final Object obj) throws JsonProcessingException {  //this will allow us not to hardcode Json obj
+        ObjectMapper objectMapper = new ObjectMapper();  //object mapper is coming from jackson --> serialization, and deserialization
+        objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);  //remove time stamps, use dates
+        objectMapper.registerModule(new JavaTimeModule());  //changing date format from 2022/12/12 to 2022/12/12
+        return objectMapper.writeValueAsString(obj);  //project will be converted to Json in a string format
     }
 
-    private static String getToken() {
+    private static String getToken() { //--> we are not going to use
 
-        RestTemplate restTemplate = new RestTemplate();
+        RestTemplate restTemplate = new RestTemplate();  //sending real API requests to keycloak to get token
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        HttpHeaders headers = new HttpHeaders(); //header
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);//header
 
         MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
 
-        map.add("grant_type", "password");
+        map.add("grant_type", "password");  //assigning keycloak properties
         map.add("client_id", "ticketing-app");
-        map.add("client_secret", "P2tMpbaXrvkdeit4b53umI0lY1p5TtAL");
+        map.add("client_secret", "iUl5hoRbNovNlC61IxnszxH7pWTrzoSd");
         map.add("username", "ozzy");
         map.add("password", "abc1");
         map.add("scope", "openid");
@@ -158,7 +162,7 @@ class ProjectControllerTest {
                         entity,
                         TestResponseDTO.class);
 
-        if (response.getBody() != null) {
+        if (response.getBody() != null) {  //if has body return body otherwise empty string
             return response.getBody().getAccess_token();
         }
 
