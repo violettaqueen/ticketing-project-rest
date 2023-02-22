@@ -4,6 +4,7 @@ import com.cydeo.dto.ProjectDTO;
 import com.cydeo.dto.ResponseWrapper;
 import com.cydeo.dto.TaskDTO;
 import com.cydeo.enums.Status;
+import com.cydeo.exception.TicketingProjectException;
 import com.cydeo.repository.TaskRepository;
 import com.cydeo.service.ProjectService;
 import com.cydeo.service.TaskService;
@@ -70,7 +71,7 @@ public class TaskController {
 
     @GetMapping("/employee/pending-tasks")
     @RolesAllowed("Employee")
-    public ResponseEntity<ResponseWrapper> employeePendingTasks() {
+    public ResponseEntity<ResponseWrapper> employeePendingTasks() throws TicketingProjectException {
         List<TaskDTO> taskDTOList = taskService.listAllTasksByStatusIsNot(Status.COMPLETE);
         return ResponseEntity.ok(new ResponseWrapper("Pending tasks are retrieved", taskDTOList, HttpStatus.OK));
     }
@@ -85,7 +86,7 @@ public class TaskController {
 
     @GetMapping("/employee/archive")
     @RolesAllowed("Employee")
-    public ResponseEntity<ResponseWrapper> employeeArchivedTasks() {
+    public ResponseEntity<ResponseWrapper> employeeArchivedTasks() throws TicketingProjectException {
         List<TaskDTO> taskDTOList = taskService.listAllTasksByStatus(Status.COMPLETE);
         return ResponseEntity.ok(new ResponseWrapper("Tasks are successfully retrieved", taskDTOList, HttpStatus.OK));
     }

@@ -17,6 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,9 +40,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDTO findByUserName(String username) {
+    public UserDTO findByUserName(String username) throws TicketingProjectException {
         User user = userRepository.findByUserNameAndIsDeleted(username, false);
+        //if user is not in our DB, add exception
+        if (user==null){
+            throw new TicketingProjectException("User not found");
+        }
         return userMapper.convertToDto(user);
+
     }
 
     @Override
@@ -52,14 +58,15 @@ public class UserServiceImpl implements UserService {
 
     //@Transactional
     @Override
-    public void save(UserDTO user) {
+    public UserDTO save(UserDTO user) {
 
         user.setEnabled(true);
         user.setPassWord(passwordEncoder.encode(user.getPassWord()));
         User obj = userMapper.convertToEntity(user);
 
-        userRepository.save(obj);
+        User savedUser=userRepository.save(obj);
         keycloakService.userCreate(user);
+        return userMapper.convertToDto(savedUser);
     }
 
 
@@ -71,7 +78,7 @@ public class UserServiceImpl implements UserService {
 //    }
 
     @Override
-    public UserDTO update(UserDTO user) {
+    public UserDTO update(UserDTO user) throws TicketingProjectException {
 
         //Find current user
         User user1 = userRepository.findByUserNameAndIsDeleted(user.getUserName(), false);  //has id

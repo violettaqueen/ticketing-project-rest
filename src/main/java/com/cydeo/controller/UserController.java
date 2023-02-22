@@ -39,7 +39,7 @@ public class UserController {
     @GetMapping("/{username}")
     @RolesAllowed("Admin")
     @Operation(summary = "Get user by user name")
-    public ResponseEntity<ResponseWrapper> getUserByUserName(@PathVariable("username") String username) {
+    public ResponseEntity<ResponseWrapper> getUserByUserName(@PathVariable("username") String username) throws TicketingProjectException {
         UserDTO user = userService.findByUserName(username);
         return ResponseEntity.ok(new ResponseWrapper("User is successfully retrieved", user, HttpStatus.OK));
     }
